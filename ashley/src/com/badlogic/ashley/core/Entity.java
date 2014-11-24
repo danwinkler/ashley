@@ -31,10 +31,14 @@ public class Entity {
 	/** A flag that can be used to bit mask this entity. Up to the user to manage. */
 	public int flags;
 	/** Will dispatch an event when a component is added. */
-	public final Signal<Entity> componentAdded;
+	public final Signal<EntityEvent> componentAdded;
 	/** Will dispatch an event when a component is removed. */
-	public final Signal<Entity> componentRemoved;
 
+	public final Signal<EntityEvent> componentRemoved;
+	/** Reusable object for component events */
+	private EntityEvent event;
+	
+	/** Unique entity id */
 	long uuid;
 	boolean scheduledForRemoval;
 	ComponentOperationHandler componentOperationHandler;
@@ -53,9 +57,9 @@ public class Entity {
 		componentBits = new Bits();
 		familyBits = new Bits();
 		flags = 0;
-
-		componentAdded = new Signal<Entity>();
-		componentRemoved = new Signal<Entity>();
+		componentAdded = new Signal<EntityEvent>();
+		componentRemoved = new Signal<EntityEvent>();
+		event = new EntityEvent();
 	}
 
 	/** @return The Entity's unique id. */
@@ -172,7 +176,11 @@ public class Entity {
 
 		componentBits.set(componentTypeIndex);
 
-		componentAdded.dispatch(this);
+		event.setEntity(this);
+		event.setComponent(component);
+		componentAdded.dispatch(event);
+		event.free();
+		
 		return this;
 	}
 
@@ -185,8 +193,11 @@ public class Entity {
 			components.set(componentTypeIndex, null);
 			componentsArray.removeValue(removeComponent, true);
 			componentBits.clear(componentTypeIndex);
-
-			componentRemoved.dispatch(this);
+	
+			event.setEntity(this);
+			event.setComponent(removeComponent);
+			componentRemoved.dispatch(event);
+			event.free();
 		}
 
 		return removeComponent;

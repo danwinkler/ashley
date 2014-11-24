@@ -59,8 +59,8 @@ public class Engine {
 	private boolean notifying;
 	private long nextEntityId = 1;
 
-	private final Listener<Entity> componentAdded;
-	private final Listener<Entity> componentRemoved;
+	private final Listener<EntityEvent> componentAdded;
+	private final Listener<EntityEvent> componentRemoved;
 
 	public Engine () {
 		entities = new Array<Entity>(false, 16);
@@ -390,7 +390,7 @@ public class Engine {
 		componentOperations.clear();
 	}
 
-	private static class ComponentListener implements Listener<Entity> {
+	private static class ComponentListener implements Listener<EntityEvent> {
 		private Engine engine;
 
 		public ComponentListener (Engine engine) {
@@ -398,8 +398,8 @@ public class Engine {
 		}
 
 		@Override
-		public void receive (Signal<Entity> signal, Entity object) {
-			engine.updateFamilyMembership(object);
+		public void receive(Signal<EntityEvent> signal, EntityEvent event) {
+			engine.updateFamilyMembership(event.getEntity());
 		}
 	}
 

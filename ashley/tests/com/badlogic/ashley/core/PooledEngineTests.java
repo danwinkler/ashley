@@ -58,11 +58,11 @@ public class PooledEngineTests {
 		}
 	}
 
-	public static class ComponentCounterListener implements Listener<Entity> {
+	public static class ComponentCounterListener implements Listener<EntityEvent> {
 		public int totalCalls = 0;
 
 		@Override
-		public void receive (Signal<Entity> signal, Entity object) {
+		public void receive(Signal<EntityEvent> signal, EntityEvent event) {
 			totalCalls++;
 		}
 	}
@@ -125,7 +125,8 @@ public class PooledEngineTests {
 
 		ComponentCounterListener addedListener = new ComponentCounterListener();
 		ComponentCounterListener removedListener = new ComponentCounterListener();
-
+		EntityEvent event = new EntityEvent();
+		
 		// force the engine to create a Family so family bits get set
 		ImmutableArray<Entity> familyEntities = engine.getEntitiesFor(Family.all(PositionComponent.class).get());
 
@@ -164,9 +165,10 @@ public class PooledEngineTests {
 			assertTrue(entities[i].getFamilyBits().isEmpty());
 			assertFalse(familyEntities.contains(entities[i], true));
 			assertEquals(0L, entities[i].getId());
-
-			entities[i].componentAdded.dispatch(entities[i]);
-			entities[i].componentRemoved.dispatch(entities[i]);
+			
+			event.setEntity(entities[i]);
+			entities[i].componentAdded.dispatch(event);
+			entities[i].componentRemoved.dispatch(event);
 		}
 
 		assertEquals(totalEntities, addedListener.totalCalls);
